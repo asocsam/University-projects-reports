@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ece448.iot_hub.PlugTests" tests="1" skipped="0" failures="0" errors="0" timestamp="2025-05-07T01:18:27" hostname="Mac-4168.cable.rcn.com" time="0.0">
+  <properties/>
+  <testcase name="testPlugGetters" classname="ece448.iot_hub.PlugTests" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ece448.iot_sim.MqttUpdatesTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2025-05-07T01:18:27" hostname="Mac-4168.cable.rcn.com" time="0.042">
+  <properties/>
+  <testcase name="testGetTopic" classname="ece448.iot_sim.MqttUpdatesTest" time="0.0"/>
+  <testcase name="testGetMessageWithLargePayload" classname="ece448.iot_sim.MqttUpdatesTest" time="0.041"/>
+  <testcase name="testGetMessageWithSpecialCharacters" classname="ece448.iot_sim.MqttUpdatesTest" time="0.0"/>
+  <testcase name="testGetTopicWithSpecialCharacters" classname="ece448.iot_sim.MqttUpdatesTest" time="0.001"/>
+  <testcase name="testGetMessageWithEmptyString" classname="ece448.iot_sim.MqttUpdatesTest" time="0.0"/>
+  <testcase name="testGetTopicWithEmptyStrings" classname="ece448.iot_sim.MqttUpdatesTest" time="0.0"/>
+  <testcase name="testGetMessage" classname="ece448.iot_sim.MqttUpdatesTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

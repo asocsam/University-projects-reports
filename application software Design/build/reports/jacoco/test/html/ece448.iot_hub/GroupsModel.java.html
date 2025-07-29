@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GroupsModel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">iot_ece448</a> &gt; <a href="index.source.html" class="el_package">ece448.iot_hub</a> &gt; <span class="el_source">GroupsModel.java</span></div><h1>GroupsModel.java</h1><pre class="source lang-java linenums">package ece448.iot_hub;
+
+import ece448.grading.GradeP3.MqttController;
+import org.springframework.core.env.Environment;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class GroupsModel {
+
+    private final MqttController mqttController;
+    private final Map&lt;String, List&lt;String&gt;&gt; groups; // Maps group names to a list of plug names
+
+    // Constructor accepts an Environment (for potential configuration) and the MqttController instance via dependency injection.
+<span class="fc" id="L16">    public GroupsModel(Environment env, MqttController mqttController) {</span>
+<span class="fc" id="L17">        this.mqttController = mqttController;</span>
+<span class="fc" id="L18">        this.groups = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L19">    }</span>
+
+    // Create or update a group.
+    // If the group already exists, all its members will be replaced.
+    public void createOrUpdateGroup(String groupName, List&lt;String&gt; plugNames) {
+<span class="fc" id="L24">        groups.put(groupName, new ArrayList&lt;&gt;(plugNames));</span>
+<span class="fc" id="L25">    }</span>
+
+    // Remove a group by its name.
+    public void removeGroup(String groupName) {
+<span class="fc" id="L29">        groups.remove(groupName);</span>
+<span class="fc" id="L30">    }</span>
+
+    // Retrieve the current state of a specific group.
+    // If the group is not found, it returns a Group object with an empty list of members.
+    public Group getGroup(String groupName) {
+<span class="fc" id="L35">        List&lt;String&gt; plugNames = groups.get(groupName);</span>
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        if (plugNames == null) {</span>
+            // Return a group with an empty member list rather than null.
+<span class="fc" id="L38">            return new Group(groupName, new ArrayList&lt;&gt;());</span>
+        }
+<span class="fc" id="L40">        List&lt;Plug&gt; members = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">        for (String plugName : plugNames) {</span>
+<span class="fc" id="L42">            String state = mqttController.getState(plugName);</span>
+<span class="fc" id="L43">            String powerStr = mqttController.getPower(plugName);</span>
+<span class="fc" id="L44">            int power = 0;</span>
+            try {
+<span class="fc bfc" id="L46" title="All 2 branches covered.">                power = (powerStr != null) ? (int) Double.parseDouble(powerStr) : 0;</span>
+<span class="fc" id="L47">            } catch (Exception ignored) {}</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">            if (state == null) {</span>
+<span class="fc" id="L49">                state = &quot;off&quot;; // Default to &quot;off&quot; so that verification returns 0 for off plugs.</span>
+            }
+<span class="fc" id="L51">            members.add(new Plug(plugName, state, power));</span>
+<span class="fc" id="L52">        }</span>
+<span class="fc" id="L53">        return new Group(groupName, members);</span>
+    }
+
+    // Retrieve the states of all groups.
+    public List&lt;Group&gt; getAllGroups() {
+<span class="fc" id="L58">        List&lt;Group&gt; allGroups = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">        for (String groupName : groups.keySet()) {</span>
+<span class="fc" id="L60">            allGroups.add(getGroup(groupName));</span>
+<span class="fc" id="L61">        }</span>
+<span class="fc" id="L62">        return allGroups;</span>
+    }
+
+    // Control a group by sending the same action to each plug in that group.
+    public void controlGroup(String groupName, String action) {
+<span class="fc" id="L67">        List&lt;String&gt; plugNames = groups.get(groupName);</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">        if (plugNames != null) {</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">            for (String plugName : plugNames) {</span>
+<span class="fc" id="L70">                mqttController.publishAction(plugName, action);</span>
+<span class="fc" id="L71">            }</span>
+        }
+<span class="fc" id="L73">    }</span>
+
+    // Data Transfer Object representing a Group.
+    public static class Group {
+        private String name;
+        private List&lt;Plug&gt; members;
+
+<span class="fc" id="L80">        public Group(String name, List&lt;Plug&gt; members) {</span>
+<span class="fc" id="L81">            this.name = name;</span>
+<span class="fc" id="L82">            this.members = members;</span>
+<span class="fc" id="L83">        }</span>
+
+        // Getter required for JSON serialization by Spring.
+        public String getName() {
+<span class="fc" id="L87">            return name;</span>
+        }
+
+        // Getter required for JSON serialization by Spring.
+        public List&lt;Plug&gt; getMembers() {
+<span class="fc" id="L92">            return members;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

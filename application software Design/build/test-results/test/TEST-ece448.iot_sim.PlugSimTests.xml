@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ece448.iot_sim.PlugSimTests" tests="20" skipped="0" failures="0" errors="0" timestamp="2025-05-07T01:18:27" hostname="Mac-4168.cable.rcn.com" time="0.028">
+  <properties/>
+  <testcase name="testSwitchOff" classname="ece448.iot_sim.PlugSimTests" time="0.001"/>
+  <testcase name="testMeasurePowerOffNameDotNumber" classname="ece448.iot_sim.PlugSimTests" time="0.003"/>
+  <testcase name="testAddObserver" classname="ece448.iot_sim.PlugSimTests" time="0.001"/>
+  <testcase name="testUpdatePower" classname="ece448.iot_sim.PlugSimTests" time="0.0"/>
+  <testcase name="testNoObservers" classname="ece448.iot_sim.PlugSimTests" time="0.0"/>
+  <testcase name="testInit" classname="ece448.iot_sim.PlugSimTests" time="0.0"/>
+  <testcase name="testNotifyMultipleObservers" classname="ece448.iot_sim.PlugSimTests" time="0.0"/>
+  <testcase name="testGetNameNull" classname="ece448.iot_sim.PlugSimTests" time="0.0"/>
+  <testcase name="testPublishState" classname="ece448.iot_sim.PlugSimTests" time="0.0"/>
+  <testcase name="testMeasurePowerOffNameDotNumberParseError" classname="ece448.iot_sim.PlugSimTests" time="0.001"/>
+  <testcase name="testToggleOn" classname="ece448.iot_sim.PlugSimTests" time="0.0"/>
+  <testcase name="testMeasurePowerOffPowerGreaterThan300Decrease" classname="ece448.iot_sim.PlugSimTests" time="0.021"/>
+  <testcase name="testSwitchOn" classname="ece448.iot_sim.PlugSimTests" time="0.0"/>
+  <testcase name="testGetNameSuccess" classname="ece448.iot_sim.PlugSimTests" time="0.0"/>
+  <testcase name="testPublishState_OnAndOff" classname="ece448.iot_sim.PlugSimTests" time="0.0"/>
+  <testcase name="testMeasurePowerOffPowerGreateThan100Increase" classname="ece448.iot_sim.PlugSimTests" time="0.001"/>
+  <testcase name="testToggleOff" classname="ece448.iot_sim.PlugSimTests" time="0.0"/>
+  <testcase name="testMeasurePowerOnPowerZero" classname="ece448.iot_sim.PlugSimTests" time="0.0"/>
+  <testcase name="testExtremePowerValues" classname="ece448.iot_sim.PlugSimTests" time="0.0"/>
+  <testcase name="testMeasurePowerOffPowerLessThan100OrGreaterThan300" classname="ece448.iot_sim.PlugSimTests" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

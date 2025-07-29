@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GradeP3.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">iot_ece448</a> &gt; <a href="index.source.html" class="el_package">ece448.grading</a> &gt; <span class="el_source">GradeP3.java</span></div><h1>GradeP3.java</h1><pre class="source lang-java linenums">package ece448.grading;
+
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+
+import java.util.stream.Collectors;
+import org.apache.http.client.fluent.Request;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ece448.iot_sim.SimConfig;
+import ece448.iot_sim.Main;
+
+public class GradeP3 implements AutoCloseable {
+
+	public static class MqttController {
+		private final String broker;
+		private final String clientId;
+		private final String topicPrefix;
+		
+		private final MqttClient client;
+	
+<span class="fc" id="L33">		private final HashMap&lt;String, String&gt; states = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L34">		private final HashMap&lt;String, String&gt; powers = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L35">		private final Map&lt;String, Deque&lt;TimeStampedReading&gt;&gt; powerHistory = new TreeMap&lt;&gt;();</span>
+<span class="fc" id="L36">		private final long maxHistoryMillis = 15 * 60_000; // keep 15 min of data</span>
+		public static class TimeStampedReading {
+			public final long timestamp;
+			public final double power;
+<span class="nc" id="L40">			public TimeStampedReading(long ts, double p) {</span>
+<span class="nc" id="L41">				this.timestamp = ts;</span>
+<span class="nc" id="L42">				this.power = p;</span>
+<span class="nc" id="L43">			}</span>
+		}
+
+		public MqttController(String broker, String clientId,
+<span class="fc" id="L47">			String topicPrefix) throws Exception {</span>
+<span class="fc" id="L48">			this.broker = broker;</span>
+<span class="fc" id="L49">			this.clientId = clientId;</span>
+<span class="fc" id="L50">			this.topicPrefix = topicPrefix;</span>
+<span class="fc" id="L51">			this.client = new MqttClient(broker, clientId, new MemoryPersistence());</span>
+<span class="fc" id="L52">		}</span>
+
+		synchronized public List&lt;TimeStampedReading&gt; getPowerHistory(String name, long minutes) {
+<span class="nc" id="L55">			Deque&lt;TimeStampedReading&gt; q = powerHistory.getOrDefault(name, new ArrayDeque&lt;&gt;());</span>
+<span class="nc" id="L56">			long cutoff = System.currentTimeMillis() - minutes*60_000;</span>
+<span class="nc" id="L57">			return q.stream()</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">					.filter(r -&gt; r.timestamp &gt;= cutoff)</span>
+<span class="nc" id="L59">					.collect(Collectors.toList());</span>
+		}
+
+		public void start() throws Exception {
+<span class="nc" id="L63">			MqttConnectOptions opt = new MqttConnectOptions();</span>
+<span class="nc" id="L64">			opt.setCleanSession(true);</span>
+<span class="nc" id="L65">			client.connect(opt);</span>
+			
+<span class="nc" id="L67">			client.subscribe(topicPrefix+&quot;/update/#&quot;, this::handleUpdate);</span>
+	
+<span class="nc" id="L69">			logger.info(&quot;MqttCtl {}: {} connected&quot;, clientId, broker);</span>
+<span class="nc" id="L70">		}</span>
+	
+		public void close() throws Exception {
+<span class="nc" id="L73">			client.disconnect();</span>
+<span class="nc" id="L74">			logger.info(&quot;MqttCtl {}: disconnected&quot;, clientId);</span>
+<span class="nc" id="L75">		}</span>
+	
+		synchronized public void publishAction(String plugName, String action) {
+<span class="nc" id="L78">			String topic = topicPrefix+&quot;/action/&quot;+plugName+&quot;/&quot;+action;</span>
+			try
+			{
+<span class="nc" id="L81">				client.publish(topic, new MqttMessage());</span>
+			}
+<span class="nc" id="L83">			catch (Exception e)</span>
+			{
+<span class="nc" id="L85">				logger.error(&quot;MqttCtl {}: {} fail to publish&quot;, clientId, topic);</span>
+<span class="nc" id="L86">			}</span>
+<span class="nc" id="L87">		}</span>
+	
+		synchronized public String getState(String plugName) {
+<span class="nc" id="L90">			return states.get(plugName);</span>
+		}
+	
+		synchronized public String getPower(String plugName) {
+<span class="nc" id="L94">			return powers.get(plugName);</span>
+		}
+	
+		synchronized public Map&lt;String, String&gt; getStates() {
+<span class="nc" id="L98">			return new TreeMap&lt;&gt;(states);</span>
+		}
+	
+		synchronized public Map&lt;String, String&gt; getPowers() {
+<span class="nc" id="L102">			return new TreeMap&lt;&gt;(powers);</span>
+		}
+
+		synchronized protected void handleUpdate(String topic, MqttMessage msg) {
+			// strip off prefix + “/”
+<span class="nc" id="L107">			String[] parts = topic.substring(topicPrefix.length()+1).split(&quot;/&quot;);</span>
+<span class="nc bnc" id="L108" title="All 4 branches missed.">			if (parts.length != 3 || !parts[0].equals(&quot;update&quot;)) return;</span>
+<span class="nc" id="L109">			String plug = parts[1], type = parts[2], payload = msg.toString();</span>
+
+<span class="nc bnc" id="L111" title="All 3 branches missed.">			switch (type) {</span>
+				case &quot;state&quot;:
+<span class="nc" id="L113">					states.put(plug, payload);</span>
+<span class="nc" id="L114">					break;</span>
+
+				case &quot;power&quot;:
+<span class="nc" id="L117">					powers.put(plug, payload);</span>
+					try {
+<span class="nc" id="L119">						double p = Double.parseDouble(payload);</span>
+<span class="nc" id="L120">						long now = System.currentTimeMillis();</span>
+<span class="nc" id="L121">						Deque&lt;TimeStampedReading&gt; q = powerHistory</span>
+<span class="nc" id="L122">								.computeIfAbsent(plug, k -&gt; new ArrayDeque&lt;&gt;());</span>
+<span class="nc" id="L123">						q.addLast(new TimeStampedReading(now, p));</span>
+<span class="nc bnc" id="L124" title="All 4 branches missed.">						while (!q.isEmpty() &amp;&amp; q.peekFirst().timestamp &lt; now - maxHistoryMillis) {</span>
+<span class="nc" id="L125">							q.removeFirst();</span>
+						}
+<span class="nc" id="L127">					} catch (NumberFormatException ignored) {}</span>
+<span class="nc" id="L128">					break;</span>
+
+				default:
+					// ignore
+			}
+<span class="nc" id="L133">		}</span>
+	
+<span class="fc" id="L135">		private static final Logger logger = LoggerFactory.getLogger(MqttController.class);</span>
+	}
+	
+	private static final String broker = &quot;tcp://127.0.0.1&quot;;
+<span class="nc" id="L139">	private static final String topicPrefix = System.currentTimeMillis()+&quot;/grade_p3/iot_ece448&quot;;</span>
+
+	private final MqttController mqtt;
+
+<span class="nc" id="L143">	private GradeP3() throws Exception {</span>
+<span class="nc" id="L144">		this.mqtt = new MqttController(broker, &quot;grader/iot_sim&quot;, topicPrefix);</span>
+<span class="nc" id="L145">		this.mqtt.start();</span>
+<span class="nc" id="L146">	}</span>
+
+	@Override
+	public void close() throws Exception {
+<span class="nc" id="L150">		mqtt.close();</span>
+<span class="nc" id="L151">	}</span>
+
+	public static void main(String[] args) throws Exception {
+<span class="nc" id="L154">		SimConfig config = new SimConfig(</span>
+<span class="nc" id="L155">			8080, Arrays.asList(&quot;xx&quot;, &quot;yy&quot;, &quot;zz.666&quot;),</span>
+			broker, &quot;testee/iot_sim&quot;, topicPrefix);
+
+<span class="nc" id="L158">		try (GradeP3 p3 = new GradeP3(); Main m = new Main(config))</span>
+		{
+<span class="nc" id="L160">			Grading.run(p3, 10);</span>
+		}
+<span class="nc" id="L162">	}</span>
+
+	private String get(String pathParams) throws Exception {
+<span class="nc" id="L165">		return Request.Get(&quot;http://127.0.0.1:8080&quot;+pathParams)</span>
+<span class="nc" id="L166">			.userAgent(&quot;Mozilla/5.0&quot;)</span>
+<span class="nc" id="L167">			.connectTimeout(1000)</span>
+<span class="nc" id="L168">			.socketTimeout(1000)</span>
+<span class="nc" id="L169">			.execute().returnContent().asString();</span>
+	}
+
+	public boolean testCase00() throws Exception {
+<span class="nc" id="L173">		return &quot;off&quot;.equals(mqtt.getState(&quot;xx&quot;));</span>
+	}
+
+	public boolean testCase01() throws Exception {
+<span class="nc" id="L177">		mqtt.publishAction(&quot;xx&quot;, &quot;on&quot;);</span>
+<span class="nc" id="L178">		Thread.sleep(1000);</span>
+<span class="nc" id="L179">		return &quot;on&quot;.equals(mqtt.getState(&quot;xx&quot;));</span>
+	}
+
+	public boolean testCase02() throws Exception {
+<span class="nc" id="L183">		mqtt.publishAction(&quot;xx&quot;, &quot;off&quot;);</span>
+<span class="nc" id="L184">		Thread.sleep(1000);</span>
+<span class="nc" id="L185">		return &quot;off&quot;.equals(mqtt.getState(&quot;xx&quot;));</span>
+	}
+
+	public boolean testCase03() throws Exception {
+<span class="nc" id="L189">		mqtt.publishAction(&quot;xx&quot;, &quot;toggle&quot;);</span>
+<span class="nc" id="L190">		Thread.sleep(1000);</span>
+<span class="nc" id="L191">		return &quot;on&quot;.equals(mqtt.getState(&quot;xx&quot;));</span>
+	}
+
+	public boolean testCase04() throws Exception {
+<span class="nc" id="L195">		Thread.sleep(1500);</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">		if (!&quot;0.000&quot;.equals(mqtt.getPower(&quot;zz.666&quot;)))</span>
+<span class="nc" id="L197">			return false;</span>
+<span class="nc" id="L198">		mqtt.publishAction(&quot;zz.666&quot;, &quot;on&quot;);	</span>
+<span class="nc" id="L199">		Thread.sleep(1500);</span>
+<span class="nc" id="L200">		return &quot;666.000&quot;.equals(mqtt.getPower(&quot;zz.666&quot;));</span>
+	}
+
+	public boolean testCase05() throws Exception {
+<span class="nc bnc" id="L204" title="All 2 branches missed.">		return (mqtt.getPower(&quot;yyyy&quot;) == null)</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">			&amp;&amp; (mqtt.getState(&quot;yyyy&quot;) == null)</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">			&amp;&amp; &quot;on&quot;.equals(mqtt.getState(&quot;zz.666&quot;));</span>
+	}
+
+	public boolean testCase06() throws Exception {
+<span class="nc" id="L210">		get(&quot;/yy?action=on&quot;);</span>
+<span class="nc" id="L211">		Thread.sleep(1000);</span>
+<span class="nc" id="L212">		return &quot;on&quot;.equals(mqtt.getState(&quot;yy&quot;));				</span>
+	}
+
+	public boolean testCase07() throws Exception {
+<span class="nc" id="L216">		get(&quot;/yy?action=off&quot;);</span>
+<span class="nc" id="L217">		Thread.sleep(1000);</span>
+<span class="nc" id="L218">		return &quot;off&quot;.equals(mqtt.getState(&quot;yy&quot;));				</span>
+	}
+
+	public boolean testCase08() throws Exception {
+<span class="nc" id="L222">		mqtt.publishAction(&quot;zz.666&quot;, &quot;toggle&quot;);</span>
+<span class="nc" id="L223">		String ret = get(&quot;/zz.666&quot;);</span>
+<span class="nc" id="L224">		Thread.sleep(1000);</span>
+<span class="nc bnc" id="L225" title="All 2 branches missed.">		return (ret.indexOf(&quot;zz.666 is off&quot;) != -1)</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">			&amp;&amp; (ret.indexOf(&quot;zz.666 is on&quot;) == -1)</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">			&amp;&amp; &quot;off&quot;.equals(mqtt.getState(&quot;zz.666&quot;));</span>
+	}
+
+	public boolean testCase09() throws Exception {
+<span class="nc" id="L231">		mqtt.publishAction(&quot;zz.666&quot;, &quot;toggle&quot;);</span>
+<span class="nc" id="L232">		String ret = get(&quot;/zz.666&quot;);</span>
+<span class="nc" id="L233">		Thread.sleep(1000);</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">		return (ret.indexOf(&quot;zz.666 is on&quot;) != -1)</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">			&amp;&amp; (ret.indexOf(&quot;zz.666 is off&quot;) == -1)</span>
+<span class="nc bnc" id="L236" title="All 2 branches missed.">			&amp;&amp; &quot;on&quot;.equals(mqtt.getState(&quot;zz.666&quot;));</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

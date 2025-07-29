@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PlugSim.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">iot_ece448</a> &gt; <a href="index.source.html" class="el_package">ece448.iot_sim</a> &gt; <span class="el_source">PlugSim.java</span></div><h1>PlugSim.java</h1><pre class="source lang-java linenums">package ece448.iot_sim;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Simulate a smart plug with power monitoring.
+ */
+public class PlugSim {
+
+	private final String name;
+<span class="fc" id="L14">	private boolean on = false;</span>
+<span class="fc" id="L15">	private double power = 0; // in watts</span>
+<span class="fc" id="L16">	private final List&lt;Observer&gt; observers = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L18">	public PlugSim(String name) {</span>
+<span class="fc" id="L19">		this.name = name;</span>
+<span class="fc" id="L20">	}</span>
+
+	/**
+	 * No need to synchronize if read a final field.
+	 */
+	public String getName() {
+<span class="fc" id="L26">		return name;</span>
+	}
+
+	/**
+	 * Switch the plug on.
+	 */
+	public synchronized void switchOn() {
+<span class="fc" id="L33">		on = true;</span>
+<span class="fc" id="L34">		notifyObservers(&quot;state&quot;, &quot;on&quot;);</span>
+<span class="fc" id="L35">		logger.debug(&quot;Plug {}: switched on&quot;, name);</span>
+<span class="fc" id="L36">	}</span>
+
+	/**
+	 * Switch the plug off.
+	 */
+	public synchronized void switchOff() {
+<span class="fc" id="L42">		on = false;</span>
+<span class="fc" id="L43">		updatePower(0); // Set power to 0 when the plug is off</span>
+<span class="fc" id="L44">		notifyObservers(&quot;state&quot;, &quot;off&quot;);</span>
+<span class="fc" id="L45">		logger.debug(&quot;Plug {}: switched off&quot;, name);</span>
+<span class="fc" id="L46">	}</span>
+
+	/**
+	 * Toggle the plug.
+	 */
+	public synchronized void toggle() {
+<span class="fc bfc" id="L52" title="All 2 branches covered.">		if (on) {</span>
+<span class="fc" id="L53">			switchOff();</span>
+		} else {
+<span class="fc" id="L55">			switchOn();</span>
+		}
+<span class="fc" id="L57">	}</span>
+
+	/**
+	 * Measure power.
+	 */
+	public synchronized void measurePower() {
+<span class="fc bfc" id="L63" title="All 2 branches covered.">		if (!on) {</span>
+<span class="fc" id="L64">			updatePower(0);</span>
+<span class="fc" id="L65">			return;</span>
+		}
+
+		// A trick to help testing
+<span class="fc bfc" id="L69" title="All 2 branches covered.">		if (name.indexOf(&quot;.&quot;) != -1) {</span>
+<span class="fc" id="L70">			updatePower(Integer.parseInt(name.split(&quot;\\.&quot;)[1]));</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">		} else if (power &lt; 100) {</span>
+<span class="fc" id="L72">			updatePower(power + Math.random() * 100);</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">		} else if (power &gt; 300) {</span>
+<span class="fc" id="L74">			updatePower(power - Math.random() * 100);</span>
+		} else {
+<span class="fc" id="L76">			updatePower(power + Math.random() * 40 - 20);</span>
+		}
+<span class="fc" id="L78">	}</span>
+
+	/**
+	 * Update the power value and log it.
+	 */
+	protected void updatePower(double p) {
+<span class="fc" id="L84">		power = p;</span>
+<span class="fc" id="L85">		notifyObservers(&quot;power&quot;, String.format(&quot;%.3f&quot;, power));</span>
+<span class="fc" id="L86">		logger.debug(&quot;Plug {}: power {}&quot;, name, power);</span>
+<span class="fc" id="L87">	}</span>
+
+	/**
+	 * Getter: current state.
+	 */
+	public synchronized boolean isOn() {
+<span class="fc" id="L93">		return on;</span>
+	}
+
+	/**
+	 * Getter: last power reading.
+	 */
+	public synchronized double getPower() {
+<span class="fc" id="L100">		return power;</span>
+	}
+
+	public void addObserver(Observer observer) {
+<span class="fc" id="L104">		observers.add(observer);</span>
+<span class="fc" id="L105">	}</span>
+
+	private void notifyObservers(String key, String value) {
+<span class="fc bfc" id="L108" title="All 2 branches covered.">		for (Observer observer : observers) {</span>
+<span class="fc" id="L109">			observer.update(name, key, value);</span>
+<span class="fc" id="L110">		}</span>
+<span class="fc" id="L111">	}</span>
+
+	public static interface Observer {
+		void update(String name, String key, String value);
+	}
+
+	public void publishState() {
+<span class="fc bfc" id="L118" title="All 2 branches covered.">		notifyObservers(&quot;state&quot;, on ? &quot;on&quot; : &quot;off&quot;);</span>
+<span class="fc" id="L119">	}</span>
+
+<span class="fc" id="L121">	private static final Logger logger = LoggerFactory.getLogger(PlugSim.class);</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

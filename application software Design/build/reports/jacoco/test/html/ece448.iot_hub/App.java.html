@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>App.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">iot_ece448</a> &gt; <a href="index.source.html" class="el_package">ece448.iot_hub</a> &gt; <span class="el_source">App.java</span></div><h1>App.java</h1><pre class="source lang-java linenums">package ece448.iot_hub;
+
+import ece448.grading.GradeP3.MqttController;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.env.Environment;
+
+@SpringBootApplication
+<span class="nc" id="L11">public class App {</span>
+
+	@Bean
+	public MqttController mqttController(Environment env) throws Exception {
+<span class="nc" id="L15">		String broker = env.getProperty(&quot;mqtt.broker&quot;);</span>
+<span class="nc" id="L16">		String clientId = env.getProperty(&quot;mqtt.clientId&quot;);</span>
+<span class="nc" id="L17">		String topicPrefix = env.getProperty(&quot;mqtt.topicPrefix&quot;);</span>
+<span class="nc" id="L18">		MqttController controller = new MqttController(broker, clientId, topicPrefix);</span>
+<span class="nc" id="L19">		controller.start();</span>
+<span class="nc" id="L20">		return controller;</span>
+	}
+
+	@Bean
+	public PlugsModel plugsModel(MqttController mqttController) {
+<span class="nc" id="L25">		return new PlugsModel(mqttController);</span>
+	}
+
+	@Bean
+	public GroupsModel groupsModel(Environment env, MqttController mqttController) {
+<span class="nc" id="L30">		return new GroupsModel(env, mqttController);</span>
+	}
+
+	public static void main(String[] args) {
+		// Start the Spring Boot application and obtain the context.
+<span class="nc" id="L35">		ConfigurableApplicationContext context = SpringApplication.run(App.class, args);</span>
+
+		// Register a shutdown hook that not only closes the context but also forces JVM termination.
+<span class="nc" id="L38">		Runtime.getRuntime().addShutdownHook(new Thread(() -&gt; {</span>
+<span class="nc" id="L39">			System.out.println(&quot;Shutdown hook: Initiating graceful shutdown...&quot;);</span>
+			try {
+<span class="nc" id="L41">				MqttController mqttController = context.getBean(MqttController.class);</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">				if (mqttController != null) {</span>
+					// If your MqttController has a disconnect() or stop() method, call it here.
+					// For example: mqttController.disconnect();
+					// (Currently, no such method exists, so this line is omitted.)
+				}
+<span class="nc" id="L47">			} catch (Exception e) {</span>
+<span class="nc" id="L48">				e.printStackTrace();</span>
+			} finally {
+				// Close the Spring context to shut down the embedded server and associated threads.
+<span class="nc" id="L51">				context.close();</span>
+<span class="nc" id="L52">				System.out.println(&quot;Spring context closed. Exiting gracefully.&quot;);</span>
+				// Force the JVM to exit.
+<span class="nc" id="L54">				System.exit(0);</span>
+			}
+<span class="nc" id="L56">		}));</span>
+
+		// (The application continues running while tests are executed.)
+<span class="nc" id="L59">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

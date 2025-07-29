@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ece448.iot_hub.GroupsModelTests" tests="11" skipped="0" failures="0" errors="0" timestamp="2025-05-07T01:18:27" hostname="Mac-4168.cable.rcn.com" time="0.003">
+  <properties/>
+  <testcase name="testCreateAndRetrieveGroup" classname="ece448.iot_hub.GroupsModelTests" time="0.001"/>
+  <testcase name="testDeleteGroup" classname="ece448.iot_hub.GroupsModelTests" time="0.0"/>
+  <testcase name="testUpdateGroup" classname="ece448.iot_hub.GroupsModelTests" time="0.0"/>
+  <testcase name="testPowerRounding" classname="ece448.iot_hub.GroupsModelTests" time="0.0"/>
+  <testcase name="testControlGroup" classname="ece448.iot_hub.GroupsModelTests" time="0.0"/>
+  <testcase name="testDefaultStateAndInvalidPowerFormat" classname="ece448.iot_hub.GroupsModelTests" time="0.0"/>
+  <testcase name="testControlEmptyGroup" classname="ece448.iot_hub.GroupsModelTests" time="0.0"/>
+  <testcase name="testGetNonexistentGroupReturnsEmptyMembers" classname="ece448.iot_hub.GroupsModelTests" time="0.0"/>
+  <testcase name="testGetAllGroups" classname="ece448.iot_hub.GroupsModelTests" time="0.001"/>
+  <testcase name="testControlNonExistentGroup" classname="ece448.iot_hub.GroupsModelTests" time="0.0"/>
+  <testcase name="testControlGroupWithNullPlugNames" classname="ece448.iot_hub.GroupsModelTests" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

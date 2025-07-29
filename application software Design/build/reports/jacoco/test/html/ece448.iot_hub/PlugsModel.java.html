@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PlugsModel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">iot_ece448</a> &gt; <a href="index.source.html" class="el_package">ece448.iot_hub</a> &gt; <span class="el_source">PlugsModel.java</span></div><h1>PlugsModel.java</h1><pre class="source lang-java linenums">package ece448.iot_hub;
+
+import ece448.grading.GradeP3.MqttController;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+public class PlugsModel {
+
+  private final MqttController mqtt;
+
+<span class="fc" id="L13">  public PlugsModel(MqttController mqtt) {</span>
+<span class="fc" id="L14">    this.mqtt = mqtt;</span>
+<span class="fc" id="L15">  }</span>
+
+  public Plug getPlug(String name) {
+<span class="fc" id="L18">    String state = mqtt.getState(name);</span>
+<span class="fc" id="L19">    String powerStr = mqtt.getPower(name);</span>
+<span class="fc" id="L20">    int power = 0;</span>
+    try {
+<span class="fc bfc" id="L22" title="All 2 branches covered.">      power = (powerStr != null) ? (int) Double.parseDouble(powerStr) : 0;</span>
+<span class="fc" id="L23">    } catch (Exception ignored) {}</span>
+
+<span class="fc bfc" id="L25" title="All 2 branches covered.">    return new Plug(name, state == null ? &quot;unknown&quot; : state, power);</span>
+  }
+
+  public List&lt;Plug&gt; getAllPlugs() {
+<span class="fc" id="L29">    Map&lt;String, String&gt; states = mqtt.getStates();</span>
+<span class="fc" id="L30">    List&lt;Plug&gt; all = new ArrayList&lt;&gt;();</span>
+
+<span class="fc bfc" id="L32" title="All 2 branches covered.">    for (String name : states.keySet()) {</span>
+<span class="fc" id="L33">      all.add(getPlug(name));</span>
+<span class="fc" id="L34">    }</span>
+<span class="fc" id="L35">    return all;</span>
+  }
+
+  public void performAction(String name, String action) {
+<span class="fc" id="L39">    mqtt.publishAction(name, action);</span>
+<span class="fc" id="L40">  }</span>
+
+  public List&lt;MqttController.TimeStampedReading&gt; getHistory(String name, long minutes) {
+<span class="nc" id="L43">    return mqtt.getPowerHistory(name, minutes);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

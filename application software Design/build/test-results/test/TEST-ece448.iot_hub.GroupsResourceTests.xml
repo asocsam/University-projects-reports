@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ece448.iot_hub.GroupsResourceTests" tests="7" skipped="0" failures="0" errors="0" timestamp="2025-05-07T01:18:27" hostname="Mac-4168.cable.rcn.com" time="0.001">
+  <properties/>
+  <testcase name="testDeleteGroup" classname="ece448.iot_hub.GroupsResourceTests" time="0.0"/>
+  <testcase name="testGetGroup" classname="ece448.iot_hub.GroupsResourceTests" time="0.0"/>
+  <testcase name="testControlNonexistentGroupViaGet" classname="ece448.iot_hub.GroupsResourceTests" time="0.0"/>
+  <testcase name="testGetAllGroups" classname="ece448.iot_hub.GroupsResourceTests" time="0.0"/>
+  <testcase name="testCreateOrUpdateGroup" classname="ece448.iot_hub.GroupsResourceTests" time="0.001"/>
+  <testcase name="testGetGroupWithAction" classname="ece448.iot_hub.GroupsResourceTests" time="0.0"/>
+  <testcase name="testGetNonexistentGroup" classname="ece448.iot_hub.GroupsResourceTests" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

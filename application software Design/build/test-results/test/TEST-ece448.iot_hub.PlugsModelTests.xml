@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ece448.iot_hub.PlugsModelTests" tests="8" skipped="0" failures="0" errors="0" timestamp="2025-05-07T01:18:27" hostname="Mac-4168.cable.rcn.com" time="0.036">
+  <properties/>
+  <testcase name="testGetAllPlugs_returnsCorrectList" classname="ece448.iot_hub.PlugsModelTests" time="0.035"/>
+  <testcase name="testPerformAction_tracksLastCalled" classname="ece448.iot_hub.PlugsModelTests" time="0.0"/>
+  <testcase name="testCaseSensitivePlugNames" classname="ece448.iot_hub.PlugsModelTests" time="0.0"/>
+  <testcase name="testPowerRounding" classname="ece448.iot_hub.PlugsModelTests" time="0.001"/>
+  <testcase name="testGetPlug_withMissingPlug" classname="ece448.iot_hub.PlugsModelTests" time="0.0"/>
+  <testcase name="testGetPlug_withValidData" classname="ece448.iot_hub.PlugsModelTests" time="0.0"/>
+  <testcase name="testPlugWithNullStateAndPower" classname="ece448.iot_hub.PlugsModelTests" time="0.0"/>
+  <testcase name="testInvalidPowerFormat" classname="ece448.iot_hub.PlugsModelTests" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

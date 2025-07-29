@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ece448.iot_hub.PlugsResourceTests" tests="4" skipped="0" failures="0" errors="0" timestamp="2025-05-07T01:18:27" hostname="Mac-4168.cable.rcn.com" time="0.002">
+  <properties/>
+  <testcase name="testGetPlugState" classname="ece448.iot_hub.PlugsResourceTests" time="0.001"/>
+  <testcase name="testControlPlug_toggle" classname="ece448.iot_hub.PlugsResourceTests" time="0.0"/>
+  <testcase name="testGetAllPlugStates" classname="ece448.iot_hub.PlugsResourceTests" time="0.0"/>
+  <testcase name="testControlPlug_on" classname="ece448.iot_hub.PlugsResourceTests" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

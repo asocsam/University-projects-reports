@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Grading.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">iot_ece448</a> &gt; <a href="index.source.html" class="el_package">ece448.grading</a> &gt; <span class="el_source">Grading.java</span></div><h1>Grading.java</h1><pre class="source lang-java linenums">package ece448.grading;
+
+import java.lang.reflect.Method;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+<span class="nc" id="L14">class Grading {</span>
+	static void run(Object obj, int n) {
+<span class="nc" id="L16">		ExecutorService exe = Executors.newSingleThreadExecutor();</span>
+<span class="nc" id="L17">		String className = obj.getClass().getSimpleName();		</span>
+<span class="nc" id="L18">		int grade = 0;</span>
+		try
+		{
+<span class="nc bnc" id="L21" title="All 2 branches missed.">			for (int i = 0; i &lt; n; i++)</span>
+			{
+<span class="nc" id="L23">				String testCaseName = String.format(&quot;testCase%02d&quot;, i);</span>
+				try
+				{
+<span class="nc" id="L26">					Method testCase = obj.getClass().getDeclaredMethod(testCaseName);</span>
+
+<span class="nc" id="L28">					Future&lt;Boolean&gt; f = exe.submit(() -&gt; {</span>
+<span class="nc" id="L29">						return (Boolean)testCase.invoke(obj);</span>
+					});
+
+<span class="nc bnc" id="L32" title="All 2 branches missed.">					if (f.get(60, TimeUnit.SECONDS))</span>
+					{
+<span class="nc" id="L34">						System.out.printf(&quot;******** %s of %s: pass%n&quot;, testCaseName, className);</span>
+<span class="nc" id="L35">						logger.info(&quot;{} of {}: success&quot;, testCaseName, className);</span>
+<span class="nc" id="L36">						System.out.println(&quot;*****************************&quot;);</span>
+<span class="nc" id="L37">						++grade;</span>
+					}
+					else
+					{
+<span class="nc" id="L41">						System.out.printf(&quot;******** %s of %s: fail%n&quot;, testCaseName, className);</span>
+<span class="nc" id="L42">						logger.info(&quot;{} of {}: failed&quot;, testCaseName, className);</span>
+<span class="nc" id="L43">						System.out.println(&quot;*************************************************************&quot;);</span>
+					}
+				}
+<span class="nc" id="L46">				catch (ExecutionException e)</span>
+				{
+<span class="nc" id="L48">					System.out.printf(&quot;******** %s of %s: exception occured %s%n&quot;, testCaseName, className, e.getCause().getCause().toString());</span>
+<span class="nc" id="L49">					logger.info(&quot;{} of {}: exception {}&quot;, testCaseName, className, e.getCause().getCause().toString());</span>
+<span class="nc" id="L50">					logger.debug(&quot;{} of {}: exception&quot;, testCaseName, className, e);</span>
+<span class="nc" id="L51">					System.out.println(&quot;*************************************************************&quot;);</span>
+				}
+<span class="nc" id="L53">				catch (TimeoutException e)</span>
+				{
+<span class="nc" id="L55">					logger.info(&quot;{} of {}: timeout, abort&quot;, testCaseName, className);</span>
+<span class="nc" id="L56">					throw new RuntimeException(e);</span>
+				}
+<span class="nc" id="L58">				catch (Throwable t)</span>
+				{
+<span class="nc" id="L60">					logger.info(&quot;{} of {}: unknown error, abort&quot;, testCaseName, className, t);</span>
+<span class="nc" id="L61">					throw new RuntimeException(t);</span>
+<span class="nc" id="L62">				}</span>
+			}
+		}
+		finally
+<span class="nc" id="L66">		{	System.out.println(&quot;&quot;);</span>
+<span class="nc" id="L67">			System.out.printf(&quot;Local Grading Test Result: %d/%d cases passed\n&quot;, grade, n);</span>
+<span class="nc" id="L68">			System.out.println(&quot;********************************************************************************&quot;);</span>
+<span class="nc" id="L69">			System.out.println(&quot;* Make sure you \&quot;git add .\&quot; and \&quot;git commit -am \&quot;your comments\&quot; and \&quot;git push\&quot; *&quot;);</span>
+<span class="nc" id="L70">			System.out.println(&quot;* to fully upload all of your codes to the Endeavour Git Repo.                 *&quot;);</span>
+<span class="nc" id="L71">			System.out.println(&quot;* Otherwise, your grading result may differ from your local result vs. server  *&quot;);</span>
+<span class="nc" id="L72">			System.out.println(&quot;********************************************************************************&quot;);</span>
+<span class="nc" id="L73">			exe.shutdownNow();</span>
+		}
+<span class="nc" id="L75">	}</span>
+
+<span class="nc" id="L77">	private static final Logger logger = LoggerFactory.getLogger(Grading.class);</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

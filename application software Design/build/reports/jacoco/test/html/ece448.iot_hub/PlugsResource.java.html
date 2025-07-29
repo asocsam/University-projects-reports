@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PlugsResource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">iot_ece448</a> &gt; <a href="index.source.html" class="el_package">ece448.iot_hub</a> &gt; <span class="el_source">PlugsResource.java</span></div><h1>PlugsResource.java</h1><pre class="source lang-java linenums">package ece448.iot_hub;
+
+import ece448.grading.GradeP3.MqttController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+public class PlugsResource {
+
+  private final PlugsModel plugsModel;
+
+  @Autowired
+<span class="fc" id="L15">  public PlugsResource(PlugsModel plugsModel) {</span>
+<span class="fc" id="L16">    this.plugsModel = plugsModel;</span>
+<span class="fc" id="L17">  }</span>
+
+  @GetMapping(&quot;/api/plugs/{name:.+}&quot;)
+  public Plug getPlugState(@PathVariable String name) {
+<span class="fc" id="L21">    return plugsModel.getPlug(name);</span>
+  }
+
+  @GetMapping(&quot;/api/plugs&quot;)
+  public List&lt;Plug&gt; getAllPlugStates() {
+<span class="fc" id="L26">    return plugsModel.getAllPlugs();</span>
+  }
+
+  @GetMapping(value = &quot;/api/plugs/{name:.+}&quot;, params = &quot;action&quot;)
+  public void controlPlug(@PathVariable String name, @RequestParam String action) {
+<span class="fc" id="L31">    plugsModel.performAction(name, action);</span>
+<span class="fc" id="L32">  }</span>
+
+  @GetMapping(&quot;/api/plugs/{name:.+}/history&quot;)
+  public List&lt;MqttController.TimeStampedReading&gt; getHistory(
+      @PathVariable String name,
+      @RequestParam(defaultValue=&quot;1&quot;) long minutes) {
+<span class="nc" id="L38">    return plugsModel.getHistory(name, minutes);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

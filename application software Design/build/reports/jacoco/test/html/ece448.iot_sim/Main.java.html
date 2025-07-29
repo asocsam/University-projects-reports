@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Main.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">iot_ece448</a> &gt; <a href="index.source.html" class="el_package">ece448.iot_sim</a> &gt; <span class="el_source">Main.java</span></div><h1>Main.java</h1><pre class="source lang-java linenums">package ece448.iot_sim;
+
+import java.io.File;
+import java.util.ArrayList;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ece448.iot_sim.http_server.JHTTP;
+
+public class Main implements AutoCloseable {
+	private final MqttClient mqtt;
+	public static void main(String[] args) throws Exception {
+		// load configuration file
+<span class="nc bnc" id="L20" title="All 2 branches missed.">		String configFile = args.length &gt; 0 ? args[0] : &quot;simConfig.json&quot;;</span>
+<span class="nc" id="L21">		SimConfig config = mapper.readValue(new File(configFile), SimConfig.class);</span>
+<span class="nc" id="L22">		logger.info(&quot;{}: {}&quot;, configFile, mapper.writeValueAsString(config));</span>
+
+<span class="nc" id="L24">		try (Main m = new Main(config))</span>
+		{
+			// loop forever
+			for (;;)
+			{
+<span class="nc" id="L29">				Thread.sleep(60000);</span>
+			}
+		}
+	}
+
+<span class="nc" id="L34">	public Main(SimConfig config) throws Exception {</span>
+		// create plugs
+<span class="nc" id="L36">		ArrayList&lt;PlugSim&gt; plugs = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L37" title="All 2 branches missed.">		for (String plugName: config.getPlugNames()) {</span>
+<span class="nc" id="L38">			plugs.add(new PlugSim(plugName));</span>
+<span class="nc" id="L39">		}</span>
+
+		// start power measurements
+<span class="nc" id="L42">		MeasurePower measurePower = new MeasurePower(plugs);</span>
+<span class="nc" id="L43">		measurePower.start();</span>
+
+		// start HTTP commands
+<span class="nc" id="L46">		this.http = new JHTTP(config.getHttpPort(), new HTTPCommands(plugs));</span>
+<span class="nc" id="L47">		this.http.start();</span>
+		// Connect to MQTT broker
+<span class="nc" id="L49">		this.mqtt = new MqttClient(</span>
+<span class="nc" id="L50">				config.getMqttBroker(),</span>
+<span class="nc" id="L51">				config.getMqttClientId(),</span>
+				new MemoryPersistence()
+		);
+
+<span class="nc" id="L55">		MqttConnectOptions options = new MqttConnectOptions();</span>
+<span class="nc" id="L56">		options.setCleanSession(true);</span>
+<span class="nc" id="L57">		mqtt.connect(options);</span>
+
+		// Setup MQTT updates
+<span class="nc" id="L60">		MqttUpdates mqttUpd = new MqttUpdates(config.getMqttTopicPrefix());</span>
+
+		// Add observers to publish state and power updates
+<span class="nc bnc" id="L63" title="All 2 branches missed.">		for (PlugSim plug : plugs) {</span>
+<span class="nc" id="L64">			plug.addObserver((name, key, value) -&gt; {</span>
+				try {
+<span class="nc" id="L66">					mqtt.publish(mqttUpd.getTopic(name, key), mqttUpd.getMessage(value));</span>
+<span class="nc" id="L67">					logger.debug(&quot;Published MQTT: {} -&gt; {}&quot;, mqttUpd.getTopic(name, key), value);</span>
+<span class="nc" id="L68">				} catch (Exception e) {</span>
+<span class="nc" id="L69">					logger.error(&quot;Failed to publish {} {} {}&quot;, name, key, value, e);</span>
+<span class="nc" id="L70">				}</span>
+<span class="nc" id="L71">			});</span>
+
+			// Publish initial state
+<span class="nc" id="L74">			plug.publishState();</span>
+<span class="nc" id="L75">		}</span>
+
+		// Setup MQTT commands
+<span class="nc" id="L78">		MqttCommands mqttCmd = new MqttCommands(plugs, config.getMqttTopicPrefix());</span>
+<span class="nc" id="L79">		logger.info(&quot;MQTT subscribe to {}&quot;, mqttCmd.getTopic());</span>
+<span class="nc" id="L80">		mqtt.subscribe(mqttCmd.getTopic(), (topic, msg) -&gt; mqttCmd.handleMessage(topic, msg));</span>
+
+<span class="nc" id="L82">		logger.info(&quot;MQTT connected to broker: {}&quot;, config.getMqttBroker());</span>
+<span class="nc" id="L83">	}</span>
+
+	@Override
+	public void close() throws Exception {
+<span class="nc" id="L87">		http.close();</span>
+<span class="nc" id="L88">	}</span>
+
+	private final JHTTP http;
+
+<span class="nc" id="L92">	private static final ObjectMapper mapper = new ObjectMapper();</span>
+<span class="nc" id="L93">	private static final Logger logger = LoggerFactory.getLogger(Main.class);</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
